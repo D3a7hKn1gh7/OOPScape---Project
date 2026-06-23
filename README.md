@@ -62,6 +62,8 @@
 
 ## Преглед
 <img width="700" height="350" alt="image" src="https://github.com/user-attachments/assets/5c6073cf-ddd6-4df3-b089-75ac98dcaf96" />
+<img width="700" height="350" alt="image" src="https://github.com/user-attachments/assets/a3708f82-73dd-4243-b64f-7e65a2c44318" />
+
 
 ## Как се стартира
 
