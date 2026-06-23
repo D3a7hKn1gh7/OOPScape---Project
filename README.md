@@ -1,5 +1,3 @@
-<img width="700" height="350" alt="image" src="https://github.com/user-attachments/assets/5c6073cf-ddd6-4df3-b089-75ac98dcaf96" /># OOPScape - ИГРА
-
 Здравейте! Казвам се Ангел Писарев и това е конзолна **лабиринтна игра**, написана на **C++** като университетски проект за **първи курс** (специалност Софтуерно инженерство). Играта върви в **конзолата** и е създадена във **Visual Studio**.
 
 ## Какво можете да правите
@@ -59,6 +57,8 @@
 | `ConsoleUtils.h` | Цветове в конзолата |
 | `Game.h/cpp` | Главен игрови цикъл |
 | `OOPScape.cpp` | Входна точка |
+
+<img width="700" height="350" alt="image" src="https://github.com/user-attachments/assets/5c6073cf-ddd6-4df3-b089-75ac98dcaf96" /> # OOPScape - ИГРА
 
 ## Как се стартира
 
