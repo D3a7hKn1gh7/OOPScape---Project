@@ -80,7 +80,16 @@ void Game::printBoard() const
         std::cout << "\n";
     }
 
-    std::cout << "HP: " << hero->getHealth();
+    int hp = hero->getHealth();
+    int maxHp = 100;
+    int barLength = 20;
+    int filled = (hp * barLength) / maxHp;
+
+    std::cout << "HP: [";
+    for (int i = 0; i < barLength; ++i)
+        std::cout << (i < filled ? '#' : '.');
+    std::cout << "] " << hp << "/" << maxHp;
+
     if (hero->isInvulnerable())
         std::cout << " [shield active]";
     std::cout << "\n";
