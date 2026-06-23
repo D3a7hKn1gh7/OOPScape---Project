@@ -19,6 +19,13 @@ void Game::loadLevel(const std::string& filename)
         board.set(p.x, p.y, ' ');
     }
 
+    traps.clear();
+    for (const Point& p : board.getTrapPositions())
+    {
+        traps.push_back(Trap{ p, 25, false });
+        board.set(p.x, p.y, ' ');
+    }
+
     gameOver = false;
     playerWon = false;
 }
@@ -53,6 +60,21 @@ void Game::printBoard() const
                 continue;
             }
 
+            bool isTrapHere = false;
+            for (const auto& t : traps)
+            {
+                if (!t.triggered && t.position == cur)
+                {
+                    isTrapHere = true;
+                    break;
+                }
+            }
+            if (isTrapHere)
+            {
+                std::cout << 'T';
+                continue;
+            }
+
             std::cout << board.at(x, y);
         }
         std::cout << "\n";
@@ -83,6 +105,27 @@ void Game::moveHero(int dx, int dy)
     }
 
     hero->setPosition(Point{ nx, ny });
+}
+
+void Game::checkHeroAgainstTrap()
+{
+    Point pos = hero->getPosition();
+    for (Trap& trap : traps)
+    {
+        if (!trap.triggered && trap.position == pos)
+        {
+            trap.triggered = true;
+            if (!hero->isInvulnerable())
+            {
+                hero->takeDamage(trap.damage);
+                std::cout << "You stepped on a trap! -" << trap.damage << " HP\n";
+            }
+            else
+            {
+                std::cout << "Your shield absorbed the trap!\n";
+            }
+        }
+    }
 }
 
 void Game::processCommand(char command)
@@ -124,6 +167,10 @@ bool Game::checkLoseCondition() const
         if (enemy->isAlive() && enemy->getPosition() == heroPos)
             return true;
     }
+
+    if (hero->getHealth() <= 0)
+        return true;
+
     return false;
 }
 
@@ -155,6 +202,7 @@ void Game::run()
         {
             char c = static_cast<char>(std::toupper(static_cast<unsigned char>(input[0])));
             processCommand(c);
+            checkHeroAgainstTrap();
         }
         else
         {
@@ -192,4 +240,4 @@ void Game::run()
         // 7. Tick down timed abilities
         hero->onTurnEnd();
     }
-}
+}   
