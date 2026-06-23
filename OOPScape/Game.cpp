@@ -1,12 +1,14 @@
 #include "Game.h"
 #include "Knight.h"
 #include "ChaserEnemy.h"
+#include "ConsoleUtils.h"
 #include <iostream>
 
 Game::Game() = default;
 
 void Game::loadLevel(const std::string& filename)
 {
+    enableAnsiColors();
     board.loadFromFile(filename);
 
     hero = std::make_unique<Knight>(board.getStartPosition(), 100, 3);
@@ -26,7 +28,6 @@ void Game::loadLevel(const std::string& filename)
         board.set(p.x, p.y, ' ');
     }
 
-    // Initialize explored grid to false
     explored.assign(board.size(), std::vector<bool>(board.size(), false));
 
     gameOver = false;
@@ -52,6 +53,7 @@ void Game::updateFog()
 
 void Game::printBoard() const
 {
+    system("cls");
     Point heroPos = hero->getPosition();
 
     for (int y = 0; y < board.size(); ++y)
@@ -64,21 +66,20 @@ void Game::printBoard() const
             int dy = y - heroPos.y;
             bool inRange = (dx * dx + dy * dy <= fogRadius * fogRadius);
 
-            // Unexplored cell
             if (!explored[y][x])
             {
                 std::cout << ' ';
                 continue;
             }
 
-            // Hero
             if (cur == heroPos)
             {
+                std::cout << (hero->isInvulnerable() ? Color::Cyan : Color::Green);
                 std::cout << (hero->isInvulnerable() ? 'K' : 'H');
+                std::cout << Color::Reset;
                 continue;
             }
 
-            // Enemies - only show if in fog radius
             if (inRange)
             {
                 bool isEnemyHere = false;
@@ -92,11 +93,10 @@ void Game::printBoard() const
                 }
                 if (isEnemyHere)
                 {
-                    std::cout << 'E';
+                    std::cout << Color::Red << 'E' << Color::Reset;
                     continue;
                 }
 
-                // Traps - only show if in fog radius
                 bool isTrapHere = false;
                 for (const auto& t : traps)
                 {
@@ -108,30 +108,36 @@ void Game::printBoard() const
                 }
                 if (isTrapHere)
                 {
-                    std::cout << 'T';
+                    std::cout << Color::Yellow << 'T' << Color::Reset;
                     continue;
                 }
             }
 
-            // Explored cell - show static map
-            std::cout << board.at(x, y);
+            char cell = board.at(x, y);
+            if (cell == 'F')
+                std::cout << Color::Yellow << cell << Color::Reset;
+            else
+                std::cout << cell;
         }
         std::cout << "\n";
     }
 
-    // HP bar
     int hp = hero->getHealth();
     int maxHp = 100;
     int barLength = 20;
     int filled = (hp * barLength) / maxHp;
 
     std::cout << "HP: [";
-    for (int i = 0; i < barLength; ++i)
-        std::cout << (i < filled ? '#' : '.');
+    std::cout << Color::Green;
+    for (int i = 0; i < filled; ++i)
+        std::cout << '#';
+    std::cout << Color::Reset;
+    for (int i = filled; i < barLength; ++i)
+        std::cout << '.';
     std::cout << "] " << hp << "/" << maxHp;
 
     if (hero->isInvulnerable())
-        std::cout << " [shield active]";
+        std::cout << Color::Cyan << " [shield active]" << Color::Reset;
     std::cout << "\n";
 }
 
@@ -167,11 +173,13 @@ void Game::checkHeroAgainstTrap()
             if (!hero->isInvulnerable())
             {
                 hero->takeDamage(trap.damage);
-                std::cout << "You stepped on a trap! -" << trap.damage << " HP\n";
+                std::cout << Color::Yellow << "You stepped on a trap! -"
+                    << trap.damage << " HP" << Color::Reset << "\n";
             }
             else
             {
-                std::cout << "Your shield absorbed the trap!\n";
+                std::cout << Color::Cyan << "Your shield absorbed the trap!"
+                    << Color::Reset << "\n";
             }
         }
     }
@@ -245,7 +253,8 @@ void Game::run()
         else if (input == "OOP")
         {
             if (hero->useAbility())
-                std::cout << "Shield activated for 3 turns!\n";
+                std::cout << Color::Cyan << "Shield activated for 3 turns!"
+                << Color::Reset << "\n";
         }
         else if (input.size() == 1)
         {
@@ -263,14 +272,16 @@ void Game::run()
         if (checkWinCondition())
         {
             printBoard();
-            std::cout << "\n*** Victory! You reached the exit! ***\n";
+            std::cout << Color::Green << "\n*** Victory! You reached the exit! ***"
+                << Color::Reset << "\n";
             gameOver = true;
             playerWon = true;
             break;
         }
         if (checkLoseCondition())
         {
-            std::cout << "\n*** Defeat! An enemy caught you! ***\n";
+            std::cout << Color::Red << "\n*** Defeat! An enemy caught you! ***"
+                << Color::Reset << "\n";
             gameOver = true;
             break;
         }
@@ -281,7 +292,8 @@ void Game::run()
         // 6. Check win/lose after enemies move
         if (checkLoseCondition())
         {
-            std::cout << "\n*** Defeat! An enemy caught you! ***\n";
+            std::cout << Color::Red << "\n*** Defeat! An enemy caught you! ***"
+                << Color::Reset << "\n";
             gameOver = true;
             break;
         }
