@@ -1,3 +1,4 @@
+#pragma once
 #ifndef GAME_H
 #define GAME_H
 
@@ -15,22 +16,24 @@ class Game
 public:
     Game();
 
-    // Loads a level from a file and initializes the hero, enemies and traps.
     void loadLevel(const std::string& filename);
-
-    // Starts the main turn loop until win/lose/quit.
     void run();
+    bool hasWon() const { return playerWon; }
 
 private:
     Board board;
     std::unique_ptr<Hero> hero;
     std::vector<std::unique_ptr<Enemy>> enemies;
     std::vector<Trap> traps;
+    std::vector<std::vector<bool>> explored;
 
     bool gameOver = false;
     bool playerWon = false;
 
+    int fogRadius = 3;
+
     void printBoard() const;
+    void updateFog();
     void processCommand(char command);
     void moveHero(int dx, int dy);
     void moveEnemies();

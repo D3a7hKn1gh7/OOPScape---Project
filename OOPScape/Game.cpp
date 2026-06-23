@@ -26,8 +26,28 @@ void Game::loadLevel(const std::string& filename)
         board.set(p.x, p.y, ' ');
     }
 
+    // Initialize explored grid to false
+    explored.assign(board.size(), std::vector<bool>(board.size(), false));
+
     gameOver = false;
     playerWon = false;
+
+    updateFog();
+}
+
+void Game::updateFog()
+{
+    Point heroPos = hero->getPosition();
+    for (int y = 0; y < board.size(); ++y)
+    {
+        for (int x = 0; x < board.size(); ++x)
+        {
+            int dx = x - heroPos.x;
+            int dy = y - heroPos.y;
+            if (dx * dx + dy * dy <= fogRadius * fogRadius)
+                explored[y][x] = true;
+        }
+    }
 }
 
 void Game::printBoard() const
@@ -39,47 +59,67 @@ void Game::printBoard() const
         for (int x = 0; x < board.size(); ++x)
         {
             Point cur{ x, y };
+
+            int dx = x - heroPos.x;
+            int dy = y - heroPos.y;
+            bool inRange = (dx * dx + dy * dy <= fogRadius * fogRadius);
+
+            // Unexplored cell
+            if (!explored[y][x])
+            {
+                std::cout << ' ';
+                continue;
+            }
+
+            // Hero
             if (cur == heroPos)
             {
                 std::cout << (hero->isInvulnerable() ? 'K' : 'H');
                 continue;
             }
 
-            bool isEnemyHere = false;
-            for (const auto& e : enemies)
+            // Enemies - only show if in fog radius
+            if (inRange)
             {
-                if (e->isAlive() && e->getPosition() == cur)
+                bool isEnemyHere = false;
+                for (const auto& e : enemies)
                 {
-                    isEnemyHere = true;
-                    break;
+                    if (e->isAlive() && e->getPosition() == cur)
+                    {
+                        isEnemyHere = true;
+                        break;
+                    }
+                }
+                if (isEnemyHere)
+                {
+                    std::cout << 'E';
+                    continue;
+                }
+
+                // Traps - only show if in fog radius
+                bool isTrapHere = false;
+                for (const auto& t : traps)
+                {
+                    if (!t.triggered && t.position == cur)
+                    {
+                        isTrapHere = true;
+                        break;
+                    }
+                }
+                if (isTrapHere)
+                {
+                    std::cout << 'T';
+                    continue;
                 }
             }
-            if (isEnemyHere)
-            {
-                std::cout << 'E';
-                continue;
-            }
 
-            bool isTrapHere = false;
-            for (const auto& t : traps)
-            {
-                if (!t.triggered && t.position == cur)
-                {
-                    isTrapHere = true;
-                    break;
-                }
-            }
-            if (isTrapHere)
-            {
-                std::cout << 'T';
-                continue;
-            }
-
+            // Explored cell - show static map
             std::cout << board.at(x, y);
         }
         std::cout << "\n";
     }
 
+    // HP bar
     int hp = hero->getHealth();
     int maxHp = 100;
     int barLength = 20;
@@ -246,7 +286,8 @@ void Game::run()
             break;
         }
 
-        // 7. Tick down timed abilities
+        // 7. Update fog and tick down timed abilities
+        updateFog();
         hero->onTurnEnd();
     }
-}   
+}
